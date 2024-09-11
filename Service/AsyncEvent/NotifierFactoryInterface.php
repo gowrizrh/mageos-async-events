@@ -17,7 +17,7 @@ interface NotifierFactoryInterface
     /**
      * Get available event sinks
      *
-     * @return array
+     * @return string[]
      */
     public function getSinks(): array;
 }
