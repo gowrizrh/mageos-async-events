@@ -13,4 +13,11 @@ interface NotifierFactoryInterface
      * @return NotifierInterface
      */
     public function create(string $type): NotifierInterface;
+
+    /**
+     * Get available event sinks
+     *
+     * @return string[]
+     */
+    public function getSinks(): array;
 }

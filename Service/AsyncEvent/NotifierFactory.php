@@ -30,4 +30,12 @@ class NotifierFactory implements NotifierFactoryInterface
 
         return $notifier;
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function getSinks(): array
+    {
+        return array_keys($this->notifierClasses);
+    }
 }
