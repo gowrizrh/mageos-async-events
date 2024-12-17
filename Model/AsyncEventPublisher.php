@@ -24,17 +24,17 @@ class AsyncEventPublisher implements AsyncEventPublisherInterface
      *
      * @param string $eventName
      * @param array $data
-     * @param string $storeId
+     * @param int $storeId
      * @return void
      */
-    public function publish(string $eventName, array $data, string $storeId = "0"): void
+    public function publish(string $eventName, array $data, int $storeId = 0): void
     {
         $arguments = $this->serializer->serialize($data);
 
         $data = [
             $eventName,
             $arguments,
-            $storeId
+            (string) $storeId
         ];
 
         $this->publisher->publish(QueueMetadataInterface::EVENT_QUEUE, $data);
