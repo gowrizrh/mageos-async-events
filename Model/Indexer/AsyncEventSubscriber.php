@@ -4,21 +4,20 @@ declare(strict_types=1);
 
 namespace MageOS\AsyncEvents\Model\Indexer;
 
-use Magento\Elasticsearch\Model\Adapter\ElasticsearchFactory;
-use MageOS\AsyncEvents\Helper\Config;
-use MageOS\AsyncEvents\Model\Adapter\BatchDataMapper\AsyncEventLogMapper;
-use MageOS\AsyncEvents\Model\Indexer\DataProvider\AsyncEventSubscriberLogs;
-use MageOS\AsyncEvents\Model\Resolver\AsyncEvent;
 use ArrayIterator;
 use Magento\CatalogSearch\Model\Indexer\IndexerHandlerFactory;
+use Magento\Elasticsearch\Model\Adapter\ElasticsearchFactory;
 use Magento\Framework\App\DeploymentConfig;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Indexer\ActionInterface as IndexerActionInterface;
 use Magento\Framework\Indexer\DimensionalIndexerInterface;
 use Magento\Framework\Indexer\DimensionProviderInterface;
-use Magento\Framework\Indexer\IndexStructureInterface;
 use Magento\Framework\Indexer\SaveHandler\IndexerInterface;
 use Magento\Framework\Mview\ActionInterface as MviewActionInterface;
+use MageOS\AsyncEvents\Helper\Config;
+use MageOS\AsyncEvents\Model\Adapter\BatchDataMapper\AsyncEventLogMapper;
+use MageOS\AsyncEvents\Model\Indexer\DataProvider\AsyncEventSubscriberLogs;
+use MageOS\AsyncEvents\Model\Resolver\AsyncEvent;
 use Traversable;
 
 class AsyncEventSubscriber implements
@@ -29,7 +28,7 @@ class AsyncEventSubscriber implements
     /**
      * Indexer ID in configuration
      */
-    private const INDEXER_ID = 'asynchronous_event_subscriber_log';
+    public const INDEXER_ID = 'asynchronous_event_subscriber_log';
 
     /**
      * Default batch size
@@ -71,10 +70,10 @@ class AsyncEventSubscriber implements
         private readonly IndexerHandlerFactory $indexerHandlerFactory,
         private readonly AsyncEventSubscriberLogs $asyncEventSubscriberLogsDataProvider,
         private readonly AsyncEvent $asyncEventScopeResolver,
-        private readonly IndexStructureInterface $indexStructure,
         private readonly Config $config,
         private readonly ElasticsearchFactory $adapterFactory,
         private readonly AsyncEventLogMapper $loggerMapper,
+        private readonly IndexStructureFactory $indexStructureFactory,
         private readonly array $data,
         int $batchSize = null,
         DeploymentConfig $deploymentConfig = null
@@ -106,21 +105,27 @@ class AsyncEventSubscriber implements
             'batchDocumentDataMapper' => $this->loggerMapper
         ]);
 
+        $indexStructure = $this->indexStructureFactory->create([
+            'adapter' => $adapter
+        ]);
+
         $saveHandler = $this->indexerHandlerFactory->create(
             [
                 'data' => $this->data,
                 'adapter' => $adapter,
                 'scopeResolver' => $this->asyncEventScopeResolver,
-                'indexStructure' => $this->indexStructure
+                'indexStructure' => $indexStructure
             ]
         );
 
         if ($entityIds === null) {
             $asyncEventDimension = $dimensions[AsyncEventDimensionProvider::DIMENSION_NAME]->getValue();
+
+
             $saveHandler->cleanIndex($dimensions);
             $saveHandler->saveIndex(
                 $dimensions,
-                $this->asyncEventSubscriberLogsDataProvider->getAsyncEventLogs($asyncEventDimension, null)
+                $this->asyncEventSubscriberLogsDataProvider->rebuildIndex($asyncEventDimension)
             );
         } else {
             $asyncEventIds = iterator_to_array($entityIds);
