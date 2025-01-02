@@ -17,7 +17,7 @@ class AsyncEventSubscriberLogs
 {
     private AdapterInterface $connection;
 
-    private const DEPLOYMENT_CONFIG_INDEXER_BATCHES = 'indexer/batch_size/';
+    private const DEPLOYMENT_CONFIG_INDEXER_BATCHES_PREFIX = 'indexer/batch_size/';
 
     /**
      * @param AsyncEventLogCollectionFactory $collectionFactory
@@ -63,7 +63,7 @@ class AsyncEventSubscriberLogs
         $tableName = $this->resource->getTableName('async_event_subscriber_log');
 
         $batchSize = $this->deploymentConfig->get(
-            self::DEPLOYMENT_CONFIG_INDEXER_BATCHES . AsyncEventSubscriber::INDEXER_ID . '/mysql_get'
+            self::DEPLOYMENT_CONFIG_INDEXER_BATCHES_PREFIX . AsyncEventSubscriber::INDEXER_ID . '/mysql_get'
         ) ?? 10_000;
 
         $lastId = 0;
@@ -85,7 +85,7 @@ class AsyncEventSubscriberLogs
                 yield $row['log_id'] => $row;
             }
 
-            $lastId = end($result)["log_id"];
+            $lastId = end($result)['log_id'];
         }
     }
 }
